@@ -1,7 +1,20 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
-import type { Profile, AppRole } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import type { AppRole } from '@/types';
+
+interface Profile {
+  id: string;
+  user_id: string;
+  nombre: string;
+  apellido: string;
+  avatar_url: string | null;
+  bio: string | null;
+  especialidad: string | null;
+  redes_sociales: Record<string, string> | null;
+  created_at: string;
+  updated_at: string;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -33,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select('*')
         .eq('user_id', userId)
         .single();
-      setProfile(data);
+      setProfile(data as Profile | null);
     } catch {
       setProfile(null);
     }
@@ -64,7 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Use setTimeout to avoid potential deadlocks with Supabase
           setTimeout(async () => {
             await Promise.all([
               fetchProfile(session.user.id),

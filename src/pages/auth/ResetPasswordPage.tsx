@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +17,6 @@ export default function ResetPasswordPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for recovery token in URL hash
     const hash = window.location.hash;
     if (hash.includes('type=recovery')) {
       setValid(true);

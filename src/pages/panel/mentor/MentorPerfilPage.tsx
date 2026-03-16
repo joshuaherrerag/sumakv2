@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,30 +6,67 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
 export default function MentorPerfilPage() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
-    nombre: profile?.nombre || '',
-    apellido: profile?.apellido || '',
-    bio: profile?.bio || '',
-    especialidad: profile?.especialidad || '',
+    nombre: '',
+    apellido: '',
+    bio: '',
+    especialidad: '',
     instagram: '',
     linkedin: '',
     website: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (profile) {
+      const redes = (profile.redes_sociales || {}) as Record<string, string>;
+      setForm({
+        nombre: profile.nombre || '',
+        apellido: profile.apellido || '',
+        bio: profile.bio || '',
+        especialidad: profile.especialidad || '',
+        instagram: redes.instagram || '',
+        linkedin: redes.linkedin || '',
+        website: redes.website || '',
+      });
+    }
+  }, [profile]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!profile) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast({ title: 'Perfil actualizado', description: 'Los cambios se guardaron correctamente (simulado).' });
-    }, 1000);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        nombre: form.nombre,
+        apellido: form.apellido,
+        bio: form.bio,
+        especialidad: form.especialidad,
+        redes_sociales: {
+          instagram: form.instagram,
+          linkedin: form.linkedin,
+          website: form.website,
+        },
+      })
+      .eq('id', profile.id);
+
+    setLoading(false);
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      await refreshProfile();
+      toast({ title: 'Perfil actualizado', description: 'Los cambios se guardaron correctamente.' });
+    }
   };
 
   return (
