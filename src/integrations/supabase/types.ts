@@ -14,16 +14,384 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cursos: {
+        Row: {
+          categoria: string
+          created_at: string
+          descripcion: string | null
+          es_incluido_en_suscripcion: boolean
+          estado: Database["public"]["Enums"]["curso_estado"]
+          id: string
+          imagen_url: string | null
+          mentor_id: string
+          precio: number
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          descripcion?: string | null
+          es_incluido_en_suscripcion?: boolean
+          estado?: Database["public"]["Enums"]["curso_estado"]
+          id?: string
+          imagen_url?: string | null
+          mentor_id: string
+          precio?: number
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descripcion?: string | null
+          es_incluido_en_suscripcion?: boolean
+          estado?: Database["public"]["Enums"]["curso_estado"]
+          id?: string
+          imagen_url?: string | null
+          mentor_id?: string
+          precio?: number
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inscripciones: {
+        Row: {
+          alumno_id: string
+          curso_id: string
+          estado: Database["public"]["Enums"]["inscripcion_estado"]
+          fecha: string
+          id: string
+        }
+        Insert: {
+          alumno_id: string
+          curso_id: string
+          estado?: Database["public"]["Enums"]["inscripcion_estado"]
+          fecha?: string
+          id?: string
+        }
+        Update: {
+          alumno_id?: string
+          curso_id?: string
+          estado?: Database["public"]["Enums"]["inscripcion_estado"]
+          fecha?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscripciones_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lecciones: {
+        Row: {
+          contenido_url: string | null
+          created_at: string
+          duracion_min: number | null
+          id: string
+          modulo_id: string
+          orden: number
+          tipo: Database["public"]["Enums"]["leccion_tipo"]
+          titulo: string
+        }
+        Insert: {
+          contenido_url?: string | null
+          created_at?: string
+          duracion_min?: number | null
+          id?: string
+          modulo_id: string
+          orden?: number
+          tipo?: Database["public"]["Enums"]["leccion_tipo"]
+          titulo: string
+        }
+        Update: {
+          contenido_url?: string | null
+          created_at?: string
+          duracion_min?: number | null
+          id?: string
+          modulo_id?: string
+          orden?: number
+          tipo?: Database["public"]["Enums"]["leccion_tipo"]
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecciones_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentores: {
+        Row: {
+          activo: boolean
+          categorias: string[] | null
+          created_at: string
+          descripcion: string | null
+          featured: boolean
+          id: string
+          precio_suscripcion: number
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          categorias?: string[] | null
+          created_at?: string
+          descripcion?: string | null
+          featured?: boolean
+          id?: string
+          precio_suscripcion?: number
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          categorias?: string[] | null
+          created_at?: string
+          descripcion?: string | null
+          featured?: boolean
+          id?: string
+          precio_suscripcion?: number
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentores_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modulos: {
+        Row: {
+          created_at: string
+          curso_id: string
+          id: string
+          orden: number
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          curso_id: string
+          id?: string
+          orden?: number
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          curso_id?: string
+          id?: string
+          orden?: number
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modulos_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificaciones: {
+        Row: {
+          created_at: string
+          id: string
+          leida: boolean
+          mensaje: string
+          tipo: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leida?: boolean
+          mensaje: string
+          tipo?: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leida?: boolean
+          mensaje?: string
+          tipo?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          apellido: string
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          especialidad: string | null
+          id: string
+          nombre: string
+          redes_sociales: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          apellido?: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          especialidad?: string | null
+          id?: string
+          nombre?: string
+          redes_sociales?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          apellido?: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          especialidad?: string | null
+          id?: string
+          nombre?: string
+          redes_sociales?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      progreso_lecciones: {
+        Row: {
+          alumno_id: string
+          completada: boolean
+          fecha: string
+          id: string
+          leccion_id: string
+        }
+        Insert: {
+          alumno_id: string
+          completada?: boolean
+          fecha?: string
+          id?: string
+          leccion_id: string
+        }
+        Update: {
+          alumno_id?: string
+          completada?: boolean
+          fecha?: string
+          id?: string
+          leccion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progreso_lecciones_leccion_id_fkey"
+            columns: ["leccion_id"]
+            isOneToOne: false
+            referencedRelation: "lecciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suscripciones_mentor: {
+        Row: {
+          alumno_id: string
+          created_at: string
+          estado: Database["public"]["Enums"]["suscripcion_estado"]
+          fecha_fin: string | null
+          fecha_inicio: string
+          id: string
+          mentor_id: string
+          plan_id_mercadopago: string | null
+        }
+        Insert: {
+          alumno_id: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["suscripcion_estado"]
+          fecha_fin?: string | null
+          fecha_inicio?: string
+          id?: string
+          mentor_id: string
+          plan_id_mercadopago?: string | null
+        }
+        Update: {
+          alumno_id?: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["suscripcion_estado"]
+          fecha_fin?: string | null
+          fecha_inicio?: string
+          id?: string
+          mentor_id?: string
+          plan_id_mercadopago?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suscripciones_mentor_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "mentor" | "alumno" | "finanzas"
+      curso_estado: "borrador" | "pendiente" | "publicado" | "rechazado"
+      inscripcion_estado: "activa" | "completada" | "cancelada"
+      leccion_tipo: "video" | "pdf" | "texto"
+      suscripcion_estado: "activa" | "cancelada" | "expirada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +518,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "mentor", "alumno", "finanzas"],
+      curso_estado: ["borrador", "pendiente", "publicado", "rechazado"],
+      inscripcion_estado: ["activa", "completada", "cancelada"],
+      leccion_tipo: ["video", "pdf", "texto"],
+      suscripcion_estado: ["activa", "cancelada", "expirada"],
+    },
   },
 } as const
