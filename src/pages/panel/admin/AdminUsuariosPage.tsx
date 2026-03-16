@@ -1,28 +1,31 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Search } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-const MOCK_USERS = [
-  { id: '1', nombre: 'María García', email: 'maria@example.com', rol: 'mentor', activo: true },
-  { id: '2', nombre: 'Juan Pérez', email: 'juan@example.com', rol: 'alumno', activo: true },
-  { id: '3', nombre: 'Carlos López', email: 'carlos@example.com', rol: 'mentor', activo: true },
-  { id: '4', nombre: 'Ana Rodríguez', email: 'ana@example.com', rol: 'alumno', activo: false },
-  { id: '5', nombre: 'Admin Principal', email: 'admin@mentorhub.com', rol: 'admin', activo: true },
-];
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AdminUsuariosPage() {
   const [search, setSearch] = useState('');
-  const { toast } = useToast();
 
-  const filtered = MOCK_USERS.filter(
-    (u) =>
-      u.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: users, isLoading } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*, user_roles(role)')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const filtered = (users || []).filter((u: any) => {
+    const fullName = `${u.nombre} ${u.apellido}`.toLowerCase();
+    return fullName.includes(search.toLowerCase());
+  });
 
   const rolColor = (rol: string) => {
     switch (rol) {
@@ -34,11 +37,9 @@ export default function AdminUsuariosPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Gestión de Usuarios</h1>
-          <p className="text-muted-foreground">{MOCK_USERS.length} usuarios registrados</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">Gestión de Usuarios</h1>
+        <p className="text-muted-foreground">{(users || []).length} usuarios registrados</p>
       </div>
 
       <div className="relative max-w-md">
@@ -46,40 +47,31 @@ export default function AdminUsuariosPage() {
         <Input placeholder="Buscar usuarios..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
-      <Card className="border-border/50">
-        <CardContent className="p-0">
-          <div className="divide-y divide-border/50">
-            {filtered.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{user.nombre}</span>
-                    <Badge variant={rolColor(user.rol)}>{user.rol}</Badge>
-                    {!user.activo && <Badge variant="outline" className="text-destructive">Suspendido</Badge>}
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+        </div>
+      ) : (
+        <Card className="border-border/50">
+          <CardContent className="p-0">
+            <div className="divide-y divide-border/50">
+              {filtered.map((user: any) => (
+                <div key={user.id} className="flex items-center justify-between p-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{user.nombre} {user.apellido}</span>
+                      {(user.user_roles || []).map((r: any) => (
+                        <Badge key={r.role} variant={rolColor(r.role)}>{r.role}</Badge>
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{user.user_id}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => toast({ title: 'Simulado', description: 'Cambio de rol se implementará con la DB.' })}
-                  >
-                    Cambiar rol
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={user.activo ? 'ghost' : 'default'}
-                    onClick={() => toast({ title: 'Simulado', description: `${user.activo ? 'Suspensión' : 'Activación'} simulada.` })}
-                  >
-                    {user.activo ? 'Suspender' : 'Activar'}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

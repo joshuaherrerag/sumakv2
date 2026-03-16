@@ -1,7 +1,33 @@
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, User, BookOpen, TrendingUp } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AdminDashboardPage() {
+  const { data: usersCount } = useQuery({
+    queryKey: ['admin-users-count'],
+    queryFn: async () => {
+      const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+  });
+
+  const { data: mentoresCount } = useQuery({
+    queryKey: ['admin-mentores-count'],
+    queryFn: async () => {
+      const { count } = await supabase.from('mentores').select('*', { count: 'exact', head: true }).eq('activo', true);
+      return count || 0;
+    },
+  });
+
+  const { data: cursosCount } = useQuery({
+    queryKey: ['admin-cursos-count'],
+    queryFn: async () => {
+      const { count } = await supabase.from('cursos').select('*', { count: 'exact', head: true }).eq('estado', 'publicado');
+      return count || 0;
+    },
+  });
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
@@ -16,8 +42,7 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">342</div>
-            <p className="text-xs text-success">+28 esta semana</p>
+            <div className="text-2xl font-bold">{usersCount ?? 0}</div>
           </CardContent>
         </Card>
         <Card className="border-border/50">
@@ -26,7 +51,7 @@ export default function AdminDashboardPage() {
             <User className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">{mentoresCount ?? 0}</div>
           </CardContent>
         </Card>
         <Card className="border-border/50">
@@ -35,7 +60,7 @@ export default function AdminDashboardPage() {
             <BookOpen className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">28</div>
+            <div className="text-2xl font-bold">{cursosCount ?? 0}</div>
           </CardContent>
         </Card>
         <Card className="border-border/50">
@@ -44,13 +69,11 @@ export default function AdminDashboardPage() {
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$450.000</div>
-            <p className="text-xs text-success">+15% vs mes anterior</p>
+            <div className="text-2xl font-bold">$0</div>
+            <p className="text-xs text-muted-foreground">Pagos simulados</p>
           </CardContent>
         </Card>
       </div>
-
-      <p className="text-sm text-muted-foreground italic">Datos simulados.</p>
     </div>
   );
 }
