@@ -24,6 +24,7 @@ import CursoDetallePage from "./pages/cursos/CursoDetallePage";
 // Mentor panel
 import MentorDashboardPage from "./pages/panel/mentor/MentorDashboardPage";
 import MentorCursosPage from "./pages/panel/mentor/MentorCursosPage";
+import MentorCursoDetallePage from "./pages/panel/mentor/MentorCursoDetallePage";
 import MentorPerfilPagePanel from "./pages/panel/mentor/MentorPerfilPage";
 import MentorFinanzasPage from "./pages/panel/mentor/MentorFinanzasPage";
 
