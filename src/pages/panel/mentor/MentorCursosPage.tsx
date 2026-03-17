@@ -7,12 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Plus, Edit, Eye, EyeOff, Loader2, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CATEGORIAS } from '@/types';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function MentorCursosPage() {
   const { toast } = useToast();
@@ -160,6 +161,11 @@ export default function MentorCursosPage() {
                   </p>
                 </div>
                 <div className="flex gap-2">
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to={`/panel/mentor/cursos/${curso.id}`}>
+                      <Edit className="mr-1 h-3 w-3" /> Editar contenido <ChevronRight className="ml-1 h-3 w-3" />
+                    </Link>
+                  </Button>
                   <Button
                     size="sm"
                     variant="ghost"
