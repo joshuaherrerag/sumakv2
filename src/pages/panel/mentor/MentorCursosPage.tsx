@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CATEGORIAS } from '@/types';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function MentorCursosPage() {
   const { toast } = useToast();
