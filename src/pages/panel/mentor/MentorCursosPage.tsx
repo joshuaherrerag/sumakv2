@@ -163,6 +163,11 @@ export default function MentorCursosPage() {
                   </p>
                 </div>
                 <div className="flex gap-2">
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to={`/panel/mentor/cursos/${curso.id}`}>
+                      <Edit className="mr-1 h-3 w-3" /> Editar contenido <ChevronRight className="ml-1 h-3 w-3" />
+                    </Link>
+                  </Button>
                   <Button
                     size="sm"
                     variant="ghost"
