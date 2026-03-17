@@ -79,6 +79,7 @@ const App = () => (
             >
               <Route path="/panel/mentor" element={<MentorDashboardPage />} />
               <Route path="/panel/mentor/cursos" element={<MentorCursosPage />} />
+              <Route path="/panel/mentor/cursos/:cursoId" element={<MentorCursoDetallePage />} />
               <Route path="/panel/mentor/perfil" element={<MentorPerfilPagePanel />} />
               <Route path="/panel/mentor/finanzas" element={<MentorFinanzasPage />} />
             </Route>
