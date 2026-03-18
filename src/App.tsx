@@ -53,6 +53,14 @@ const App = () => (
             <Route path="/registro" element={<RegistroPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* App layout (navbar) */}
             <Route element={<AppLayout />}>
