@@ -90,9 +90,11 @@ export default function MentorPerfilPage() {
               <span className="text-2xl font-bold">${Number(mentor.precio_suscripcion).toLocaleString('es-AR')}</span>
               <span className="text-sm text-muted-foreground">/mes</span>
             </div>
-            <Button className="gradient-primary glow" onClick={handleSuscribirse}>
-              Suscribirse
-            </Button>
+            <SuscripcionButton
+              mentorId={mentor.id}
+              mentorNombre={mentor.profiles.nombre}
+              precioSuscripcion={Number(mentor.precio_suscripcion)}
+            />
           </div>
         </CardContent>
       </Card>

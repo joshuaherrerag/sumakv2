@@ -102,9 +102,14 @@ export default function CursoDetallePage() {
                 : 'Comprá el curso para acceder al contenido completo'}
             </p>
           </div>
-          <Button className="gradient-primary glow" onClick={handleInscribirse}>
-            {curso.es_incluido_en_suscripcion ? 'Suscribirse al mentor' : 'Inscribirse'}
-          </Button>
+          <InscripcionButton
+            cursoId={curso.id}
+            precio={Number(curso.precio)}
+            esIncluidoEnSuscripcion={curso.es_incluido_en_suscripcion}
+            mentorId={curso.mentores.id}
+            mentorNombre={mentorName}
+            precioSuscripcion={Number(curso.mentores.precio_suscripcion)}
+          />
         </CardContent>
       </Card>
 
