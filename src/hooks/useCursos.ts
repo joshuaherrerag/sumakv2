@@ -57,6 +57,7 @@ export function useCurso(id: string | undefined) {
           *,
           mentores!inner (
             id,
+            precio_suscripcion,
             profiles!inner (nombre, apellido)
           )
         `)
