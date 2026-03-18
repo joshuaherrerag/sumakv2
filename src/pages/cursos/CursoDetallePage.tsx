@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, BookOpen, Clock, PlayCircle, FileText } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useCurso, useCursoModulos } from '@/hooks/useCursos';
+import { InscripcionButton } from '@/components/InscripcionButton';
 import {
   Accordion,
   AccordionContent,
