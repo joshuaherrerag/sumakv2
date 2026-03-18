@@ -10,7 +10,6 @@ import { SuscripcionButton } from '@/components/SuscripcionButton';
 
 export default function MentorPerfilPage() {
   const { id } = useParams();
-  const { toast } = useToast();
   const { data: mentor, isLoading } = useMentor(id);
   const { data: cursos } = useMentorCursos(id);
 
