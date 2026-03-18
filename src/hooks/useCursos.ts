@@ -33,6 +33,7 @@ export function useCursos() {
           *,
           mentores!inner (
             id,
+            precio_suscripcion,
             profiles!inner (nombre, apellido)
           )
         `)
