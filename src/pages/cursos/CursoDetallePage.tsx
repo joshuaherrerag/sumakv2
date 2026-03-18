@@ -15,7 +15,6 @@ import {
 
 export default function CursoDetallePage() {
   const { id } = useParams();
-  const { toast } = useToast();
   const { data: curso, isLoading } = useCurso(id);
   const { data: modulos } = useCursoModulos(id);
 
