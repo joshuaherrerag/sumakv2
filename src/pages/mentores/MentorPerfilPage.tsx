@@ -4,22 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, BookOpen, ArrowLeft, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Star, BookOpen, ArrowLeft } from 'lucide-react';
 import { useMentor, useMentorCursos } from '@/hooks/useMentores';
+import { SuscripcionButton } from '@/components/SuscripcionButton';
 
 export default function MentorPerfilPage() {
   const { id } = useParams();
-  const { toast } = useToast();
   const { data: mentor, isLoading } = useMentor(id);
   const { data: cursos } = useMentorCursos(id);
-
-  const handleSuscribirse = () => {
-    toast({
-      title: 'Suscripción simulada',
-      description: 'Los pagos se integrarán con MercadoPago/PayPal próximamente.',
-    });
-  };
 
   if (isLoading) {
     return (
@@ -91,9 +83,11 @@ export default function MentorPerfilPage() {
               <span className="text-2xl font-bold">${Number(mentor.precio_suscripcion).toLocaleString('es-AR')}</span>
               <span className="text-sm text-muted-foreground">/mes</span>
             </div>
-            <Button className="gradient-primary glow" onClick={handleSuscribirse}>
-              Suscribirse
-            </Button>
+            <SuscripcionButton
+              mentorId={mentor.id}
+              mentorNombre={mentor.profiles.nombre}
+              precioSuscripcion={Number(mentor.precio_suscripcion)}
+            />
           </div>
         </CardContent>
       </Card>

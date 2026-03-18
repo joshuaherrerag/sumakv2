@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, BookOpen, Clock, PlayCircle, FileText } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useCurso, useCursoModulos } from '@/hooks/useCursos';
+import { InscripcionButton } from '@/components/InscripcionButton';
 import {
   Accordion,
   AccordionContent,
@@ -15,7 +15,6 @@ import {
 
 export default function CursoDetallePage() {
   const { id } = useParams();
-  const { toast } = useToast();
   const { data: curso, isLoading } = useCurso(id);
   const { data: modulos } = useCursoModulos(id);
 
@@ -26,13 +25,6 @@ export default function CursoDetallePage() {
     (acc, m: any) => acc + (m.lecciones || []).reduce((a: number, l: any) => a + (l.duracion_min || 0), 0),
     0
   );
-
-  const handleInscribirse = () => {
-    toast({
-      title: 'Inscripción simulada',
-      description: 'La inscripción se conectará con pagos próximamente.',
-    });
-  };
 
   const tipoIcon = (tipo: string) => {
     switch (tipo) {
@@ -103,9 +95,14 @@ export default function CursoDetallePage() {
                 : 'Comprá el curso para acceder al contenido completo'}
             </p>
           </div>
-          <Button className="gradient-primary glow" onClick={handleInscribirse}>
-            {curso.es_incluido_en_suscripcion ? 'Suscribirse al mentor' : 'Inscribirse'}
-          </Button>
+          <InscripcionButton
+            cursoId={curso.id}
+            precio={Number(curso.precio)}
+            esIncluidoEnSuscripcion={curso.es_incluido_en_suscripcion}
+            mentorId={curso.mentores.id}
+            mentorNombre={mentorName}
+            precioSuscripcion={Number(curso.mentores.precio_suscripcion)}
+          />
         </CardContent>
       </Card>
 

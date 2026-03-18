@@ -15,6 +15,7 @@ export interface CursoWithMentor {
   created_at: string;
   mentores: {
     id: string;
+    precio_suscripcion: number;
     profiles: {
       nombre: string;
       apellido: string;
@@ -32,6 +33,7 @@ export function useCursos() {
           *,
           mentores!inner (
             id,
+            precio_suscripcion,
             profiles!inner (nombre, apellido)
           )
         `)
@@ -55,6 +57,7 @@ export function useCurso(id: string | undefined) {
           *,
           mentores!inner (
             id,
+            precio_suscripcion,
             profiles!inner (nombre, apellido)
           )
         `)
