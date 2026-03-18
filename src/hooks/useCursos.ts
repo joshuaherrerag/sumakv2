@@ -15,6 +15,7 @@ export interface CursoWithMentor {
   created_at: string;
   mentores: {
     id: string;
+    precio_suscripcion: number;
     profiles: {
       nombre: string;
       apellido: string;
