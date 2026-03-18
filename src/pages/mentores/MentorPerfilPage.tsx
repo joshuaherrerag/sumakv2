@@ -13,13 +13,6 @@ export default function MentorPerfilPage() {
   const { data: mentor, isLoading } = useMentor(id);
   const { data: cursos } = useMentorCursos(id);
 
-  const handleSuscribirse = () => {
-    toast({
-      title: 'Suscripción simulada',
-      description: 'Los pagos se integrarán con MercadoPago/PayPal próximamente.',
-    });
-  };
-
   if (isLoading) {
     return (
       <div className="container max-w-4xl py-8 space-y-8">

@@ -26,13 +26,6 @@ export default function CursoDetallePage() {
     0
   );
 
-  const handleInscribirse = () => {
-    toast({
-      title: 'Inscripción simulada',
-      description: 'La inscripción se conectará con pagos próximamente.',
-    });
-  };
-
   const tipoIcon = (tipo: string) => {
     switch (tipo) {
       case 'video': return <PlayCircle className="h-4 w-4 text-primary" />;
