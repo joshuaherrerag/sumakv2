@@ -20,6 +20,7 @@ import MentoresPage from "./pages/mentores/MentoresPage";
 import MentorPerfilPage from "./pages/mentores/MentorPerfilPage";
 import CursosPage from "./pages/cursos/CursosPage";
 import CursoDetallePage from "./pages/cursos/CursoDetallePage";
+import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
 // Mentor panel
 import MentorDashboardPage from "./pages/panel/mentor/MentorDashboardPage";
