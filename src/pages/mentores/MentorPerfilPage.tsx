@@ -4,9 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, BookOpen, ArrowLeft, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Star, BookOpen, ArrowLeft } from 'lucide-react';
 import { useMentor, useMentorCursos } from '@/hooks/useMentores';
+import { SuscripcionButton } from '@/components/SuscripcionButton';
 
 export default function MentorPerfilPage() {
   const { id } = useParams();
