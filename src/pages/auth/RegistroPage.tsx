@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +16,7 @@ export default function RegistroPage() {
   const [password, setPassword] = useState('');
   const [rol, setRol] = useState<'alumno' | 'mentor'>('alumno');
   const [loading, setLoading] = useState(false);
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,25 +32,68 @@ export default function RegistroPage() {
     }
 
     setLoading(true);
-    const { error } = await signUp(email, password, {
-      nombre,
-      apellido,
-      rol_inicial: rol,
-    });
-    setLoading(false);
+    try {
+      // rol_inicial solo se envía cuando es 'mentor'; el trigger lo usa para asignar el rol.
+      // Si no está presente, el trigger asigna 'alumno' por defecto.
+      const metadata: Record<string, string> = { nombre, apellido };
+      if (rol === 'mentor') metadata.rol_inicial = 'mentor';
 
-    if (error) {
+      console.log('[Registro] Enviando signUp:', {
+        email,
+        metadata,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        keyPresent: !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      });
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: metadata },
+      });
+
+      console.log('[Registro] Respuesta de Supabase:', { data, error });
+
+      if (error) {
+        console.error('[Registro] Error completo:', error);
+        toast({
+          title: 'Error al registrarse',
+          description: error.message || JSON.stringify(error),
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Si Supabase devuelve un usuario sin sesión, significa que necesita confirmar el email
+      if (data.user && !data.session) {
+        toast({
+          title: '¡Cuenta creada!',
+          description: 'Revisá tu email para confirmar tu cuenta.',
+        });
+        navigate('/login');
+        return;
+      }
+
+      // Si el email ya existe (Supabase puede retornar user sin error en ese caso)
+      if (!data.user) {
+        toast({
+          title: 'No se pudo crear la cuenta',
+          description: 'Intentá con otro email o iniciá sesión.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({ title: '¡Cuenta creada!' });
+      navigate('/login');
+    } catch (e: any) {
+      console.error('[Registro] Excepción capturada:', e);
       toast({
-        title: 'Error al registrarse',
-        description: error.message,
+        title: 'Error de conexión',
+        description: e?.message ?? JSON.stringify(e) ?? 'No se pudo conectar con el servidor.',
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: '¡Cuenta creada!',
-        description: 'Revisá tu email para confirmar tu cuenta.',
-      });
-      navigate('/login');
+    } finally {
+      setLoading(false);
     }
   };
 

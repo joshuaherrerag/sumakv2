@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2, Check, CreditCard } from 'lucide-react';
+import { Loader2, Check, CreditCard, PlayCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -126,8 +126,8 @@ export function InscripcionButton({
 
   if (isInscribed || (esIncluidoEnSuscripcion && isSubscribed)) {
     return (
-      <Button disabled className="bg-success/20 text-success border-success/30">
-        <Check className="mr-2 h-4 w-4" /> Ya inscripto
+      <Button className="gradient-primary" onClick={() => navigate(`/cursos/${cursoId}/ver`)}>
+        <PlayCircle className="mr-2 h-4 w-4" /> Ver curso
       </Button>
     );
   }

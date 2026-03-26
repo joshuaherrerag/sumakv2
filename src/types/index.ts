@@ -88,6 +88,16 @@ export interface Notificacion {
   created_at: string;
 }
 
+// Países de Latinoamérica
+export const PAISES_LATAM = [
+  'Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia',
+  'Costa Rica', 'Cuba', 'Ecuador', 'El Salvador', 'Guatemala',
+  'Honduras', 'México', 'Nicaragua', 'Panamá', 'Paraguay',
+  'Perú', 'República Dominicana', 'Uruguay', 'Venezuela',
+] as const;
+
+export type PaisLatam = (typeof PAISES_LATAM)[number];
+
 // Categorías disponibles
 export const CATEGORIAS = [
   'Desarrollo Personal',

@@ -1,37 +1,72 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Eye, EyeOff, Loader2, ChevronRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Edit, ChevronRight, BookOpen, Eye, Trash2, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CATEGORIAS } from '@/types';
-import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 
-export default function MentorCursosPage() {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ titulo: '', descripcion: '', categoria: '', precio: '0' });
+const estadoVariant = (estado: string): 'default' | 'secondary' | 'outline' | 'destructive' => {
+  switch (estado) {
+    case 'publicado': return 'default';
+    case 'borrador': return 'secondary';
+    case 'pendiente': return 'outline';
+    default: return 'destructive';
+  }
+};
 
-  const { data: mentorId } = useQuery({
-    queryKey: ['my-mentor-id', user?.id],
+export default function MentorCursosPage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: mentorData } = useQuery({
+    queryKey: ['my-mentor-data', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data: prof } = await supabase.from('profiles').select('id').eq('user_id', user!.id).single();
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user!.id)
+        .single();
       if (!prof) return null;
-      const { data: mentor } = await supabase.from('mentores').select('id').eq('profile_id', prof.id).single();
-      return mentor?.id || null;
+      const { data: mentor } = await supabase
+        .from('mentores')
+        .select('id')
+        .eq('profile_id', prof.id)
+        .single();
+      return mentor ? { mentorId: mentor.id, profileId: prof.id } : null;
     },
   });
+
+  const mentorId = mentorData?.mentorId;
+
+  const invalidar = () => queryClient.invalidateQueries({ queryKey: ['my-cursos', mentorId] });
+
+  const publicarCurso = async (cursoId: string) => {
+    const { error } = await supabase.from('cursos').update({ estado: 'publicado' }).eq('id', cursoId);
+    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'Curso publicado', description: 'Ahora es visible para los alumnos.' });
+    invalidar();
+  };
+
+  const despublicarCurso = async (cursoId: string) => {
+    const { error } = await supabase.from('cursos').update({ estado: 'borrador' }).eq('id', cursoId);
+    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'Curso despublicado', description: 'Ya no es visible para los alumnos.' });
+    invalidar();
+  };
+
+  const borrarCurso = async (cursoId: string) => {
+    if (!confirm('¿Seguro que querés borrar este curso? Esta acción no se puede deshacer.')) return;
+    const { error } = await supabase.from('cursos').delete().eq('id', cursoId);
+    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'Curso eliminado' });
+    invalidar();
+  };
 
   const { data: cursos, isLoading } = useQuery({
     queryKey: ['my-cursos', mentorId],
@@ -47,51 +82,6 @@ export default function MentorCursosPage() {
     },
   });
 
-  const createCurso = useMutation({
-    mutationFn: async () => {
-      if (!mentorId) throw new Error('No mentor ID');
-      const { error } = await supabase.from('cursos').insert({
-        mentor_id: mentorId,
-        titulo: form.titulo,
-        descripcion: form.descripcion,
-        categoria: form.categoria,
-        precio: parseFloat(form.precio) || 0,
-        estado: 'borrador',
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-cursos'] });
-      setOpen(false);
-      setForm({ titulo: '', descripcion: '', categoria: '', precio: '0' });
-      toast({ title: 'Curso creado', description: 'Tu curso fue creado como borrador.' });
-    },
-    onError: (err: Error) => {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    },
-  });
-
-  const toggleEstado = useMutation({
-    mutationFn: async ({ id, estado }: { id: string; estado: string }) => {
-      const nuevoEstado = estado === 'publicado' ? 'borrador' : 'pendiente';
-      const { error } = await supabase.from('cursos').update({ estado: nuevoEstado as any }).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-cursos'] });
-      toast({ title: 'Estado actualizado' });
-    },
-  });
-
-  const estadoColor = (estado: string) => {
-    switch (estado) {
-      case 'publicado': return 'default';
-      case 'borrador': return 'secondary';
-      case 'pendiente': return 'outline';
-      default: return 'destructive' as const;
-    }
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -99,90 +89,114 @@ export default function MentorCursosPage() {
           <h1 className="text-2xl font-bold">Mis Cursos</h1>
           <p className="text-muted-foreground">Gestioná tus formaciones</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary">
-              <Plus className="mr-2 h-4 w-4" /> Nuevo Curso
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Crear nuevo curso</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); createCurso.mutate(); }} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Título</Label>
-                <Input value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} required />
-              </div>
-              <div className="space-y-2">
-                <Label>Descripción</Label>
-                <Textarea value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} rows={3} />
-              </div>
-              <div className="space-y-2">
-                <Label>Categoría</Label>
-                <Select value={form.categoria} onValueChange={(v) => setForm({ ...form, categoria: v })}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIAS.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Precio (ARS)</Label>
-                <Input type="number" min="0" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} />
-              </div>
-              <Button type="submit" className="w-full gradient-primary" disabled={createCurso.isPending}>
-                {createCurso.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Crear curso
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button className="gradient-primary" asChild>
+          <Link to="/panel/mentor/cursos/nuevo">
+            <Plus className="mr-2 h-4 w-4" /> Nuevo Curso
+          </Link>
+        </Button>
       </div>
 
-      {isLoading ? (
-        <p className="text-muted-foreground">Cargando...</p>
-      ) : (cursos || []).length === 0 ? (
-        <p className="text-muted-foreground">Aún no tenés cursos. ¡Creá el primero!</p>
-      ) : (
-        <div className="space-y-4">
-          {(cursos || []).map((curso) => (
-            <Card key={curso.id} className="border-border/50">
-              <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{curso.titulo}</h3>
-                    <Badge variant={estadoColor(curso.estado)}>{curso.estado}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {curso.categoria} · ${Number(curso.precio).toLocaleString('es-AR')}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" asChild>
-                    <Link to={`/panel/mentor/cursos/${curso.id}`}>
-                      <Edit className="mr-1 h-3 w-3" /> Editar contenido <ChevronRight className="ml-1 h-3 w-3" />
-                    </Link>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => toggleEstado.mutate({ id: curso.id, estado: curso.estado })}
-                  >
-                    {curso.estado === 'publicado' ? (
-                      <><EyeOff className="mr-1 h-3 w-3" /> Despublicar</>
-                    ) : (
-                      <><Eye className="mr-1 h-3 w-3" /> Enviar a revisión</>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <Tabs defaultValue="mis-cursos">
+        <TabsList>
+          <TabsTrigger value="mis-cursos">Mis formaciones</TabsTrigger>
+          <TabsTrigger value="colaboraciones">Colaboraciones</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="mis-cursos" className="mt-4">
+          {isLoading ? (
+            <p className="text-muted-foreground">Cargando...</p>
+          ) : (cursos || []).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3 border-2 border-dashed border-border rounded-xl">
+              <BookOpen className="h-10 w-10 opacity-40" />
+              <p>Aún no tenés cursos. ¡Creá el primero!</p>
+              <Button className="gradient-primary mt-2" asChild>
+                <Link to="/panel/mentor/cursos/nuevo"><Plus className="mr-2 h-4 w-4" />Crear mi primer curso</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {(cursos || []).map((curso) => (
+                <Card key={curso.id} className="border-border/50 overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="flex items-stretch gap-0">
+                      {/* Thumbnail */}
+                      <div className="w-40 shrink-0 bg-muted">
+                        {curso.imagen_url ? (
+                          <img
+                            src={curso.imagen_url}
+                            alt={curso.titulo}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center min-h-[90px]">
+                            <BookOpen className="h-8 w-8 text-muted-foreground/40" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex flex-1 items-center justify-between gap-4 p-4">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold">{curso.titulo}</h3>
+                            <Badge variant={estadoVariant(curso.estado)}>{curso.estado}</Badge>
+                            <Badge variant="outline">{curso.categoria}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {curso.es_incluido_en_suscripcion
+                              ? 'Incluido en suscripción'
+                              : `$${Number(curso.precio).toLocaleString('es-AR')}`}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+                          <Button size="sm" variant="ghost" asChild>
+                            <Link to={`/cursos/${curso.id}`}>
+                              <Eye className="mr-1 h-3 w-3" /> Ver
+                            </Link>
+                          </Button>
+                          <Button size="sm" variant="outline" asChild>
+                            <Link to={`/panel/mentor/cursos/${curso.id}`}>
+                              <Edit className="mr-1 h-3 w-3" /> Editar
+                              <ChevronRight className="ml-1 h-3 w-3" />
+                            </Link>
+                          </Button>
+                          {curso.estado === 'publicado' ? (
+                            <Button size="sm" variant="outline" onClick={() => despublicarCurso(curso.id)}>
+                              <EyeOff className="mr-1 h-3 w-3" /> Despublicar
+                            </Button>
+                          ) : (
+                            <Button size="sm" className="gradient-primary" onClick={() => publicarCurso(curso.id)}>
+                              <Eye className="mr-1 h-3 w-3" /> Publicar
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => borrarCurso(curso.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="colaboraciones" className="mt-4">
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3 border-2 border-dashed border-border rounded-xl">
+            <BookOpen className="h-10 w-10 opacity-40" />
+            <p className="text-center">
+              Las colaboraciones con otros mentores estarán disponibles próximamente.
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
