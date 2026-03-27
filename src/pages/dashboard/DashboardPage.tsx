@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Users, Bell, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { FeedPersonalizado } from '@/components/comunidad/FeedPersonalizado';
 
 export default function DashboardPage() {
   const { profile, roles } = useAuth();
@@ -88,6 +89,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <FeedPersonalizado />
 
       {roles.includes('mentor') && (
         <Card className="border-primary/20 bg-primary/5">

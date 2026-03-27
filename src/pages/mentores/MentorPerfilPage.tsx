@@ -1,14 +1,17 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, BookOpen, ArrowLeft } from 'lucide-react';
+import { Star, BookOpen, ArrowLeft, Calendar, MapPin, Video } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useMentor, useMentorCursos } from '@/hooks/useMentores';
 import { SuscripcionButton } from '@/components/SuscripcionButton';
+import { BotonSeguir } from '@/components/comunidad/BotonSeguir';
 import { supabase } from '@/integrations/supabase/client';
 
 function CursoCard({ curso, rol }: { curso: any; rol?: string }) {
@@ -51,8 +54,25 @@ function CursoCard({ curso, rol }: { curso: any; rol?: string }) {
 
 export default function MentorPerfilPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data: mentor, isLoading } = useMentor(id);
   const { data: cursosCreados } = useMentorCursos(id);
+
+  const { data: proximosEventos } = useQuery({
+    queryKey: ['mentor-proximos-eventos', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('evento_mentores')
+        .select('eventos!inner(*)')
+        .eq('mentor_id', id!)
+        .gte('eventos.fecha_inicio', new Date().toISOString())
+        .order('eventos(fecha_inicio)', { ascending: true })
+        .limit(3);
+      if (error) throw error;
+      return (data || []).map((r: any) => r.eventos);
+    },
+  });
 
   const { data: colaboraciones } = useQuery({
     queryKey: ['mentor-colaboraciones', id],
@@ -125,6 +145,7 @@ export default function MentorPerfilPage() {
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-bold">{mentor.profiles.nombre} {mentor.profiles.apellido}</h1>
               {mentor.featured && <Star className="h-5 w-5 text-warning fill-warning" />}
+              <BotonSeguir profileId={mentor.profiles.id} />
             </div>
             <p className="text-primary font-medium">{mentor.profiles.especialidad}</p>
             <div className="flex flex-wrap gap-2">
@@ -169,6 +190,42 @@ export default function MentorPerfilPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Próximas apariciones */}
+          {(proximosEventos || []).length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold">Próximas apariciones</h2>
+              <div className="space-y-2">
+                {(proximosEventos || []).map((evento: any) => (
+                  <Card
+                    key={evento.id}
+                    className="border-border/50 hover:border-primary/30 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/eventos/${evento.id}`)}
+                  >
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="shrink-0">
+                        {evento.tipo === 'online' ? (
+                          <Video className="h-5 w-5 text-primary" />
+                        ) : (
+                          <MapPin className="h-5 w-5 text-sumak-naranja" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{evento.titulo}</p>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {format(new Date(evento.fecha_inicio), "d 'de' MMMM, yyyy — HH:mm", { locale: es })}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="shrink-0 text-xs">
+                        {evento.tipo === 'hibrido' ? 'Híbrido' : evento.tipo === 'online' ? 'Online' : 'Presencial'}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Tabs de cursos */}
           <Tabs defaultValue="creadas">

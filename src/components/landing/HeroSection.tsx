@@ -64,9 +64,9 @@ export function HeroSection() {
             variant="outline"
             size="lg"
             className="rounded-full px-8 py-6 text-base font-semibold gradient-border bg-transparent hover:bg-card/50"
-            onClick={() => navigate('/mentores')}
+            onClick={() => navigate('/catalogo')}
           >
-            Conocer mentores
+            Explorar catálogo
           </Button>
         </div>
 

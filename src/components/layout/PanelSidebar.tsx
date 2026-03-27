@@ -1,6 +1,7 @@
 import {
   BarChart3,
   BookOpen,
+  Calendar,
   GraduationCap,
   Home,
   Settings,
@@ -25,6 +26,7 @@ import {
 const mentorItems = [
   { title: 'Dashboard', url: '/panel/mentor', icon: Home },
   { title: 'Mis Cursos', url: '/panel/mentor/cursos', icon: BookOpen },
+  { title: 'Eventos', url: '/panel/mentor/eventos', icon: Calendar },
   { title: 'Mi Perfil', url: '/panel/mentor/perfil', icon: User },
   { title: 'Finanzas', url: '/panel/mentor/finanzas', icon: Wallet },
 ];

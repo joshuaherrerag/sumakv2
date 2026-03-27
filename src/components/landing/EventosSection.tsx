@@ -1,59 +1,44 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, Clock, MapPin } from 'lucide-react';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, MapPin, Video } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { supabase } from '@/integrations/supabase/client';
 
-const eventosMock = [
-  {
-    id: '1',
-    titulo: 'Retiro de Meditación Profunda',
-    tipo: 'presencial',
-    fecha: '15 Mar 2025',
-    hora: '09:00',
-    mentor: 'María Elena Torres',
-    mentorAvatar: 'https://i.pravatar.cc/40?img=5',
-    precio: 4500,
-    imagen: '',
-    ubicacion: 'Buenos Aires, Argentina',
-  },
-  {
-    id: '2',
-    titulo: 'Masterclass: Abundancia Financiera',
-    tipo: 'online',
-    fecha: '22 Mar 2025',
-    hora: '19:00',
-    mentor: 'Carlos Mendoza',
-    mentorAvatar: 'https://i.pravatar.cc/40?img=12',
-    precio: 0,
-    imagen: '',
-    ubicacion: 'Zoom',
-  },
-  {
-    id: '3',
-    titulo: 'Workshop: Yoga y Respiración Consciente',
-    tipo: 'online',
-    fecha: '28 Mar 2025',
-    hora: '18:00',
-    mentor: 'Valentina Ruiz',
-    mentorAvatar: 'https://i.pravatar.cc/40?img=9',
-    precio: 1500,
-    imagen: '',
-    ubicacion: 'Google Meet',
-  },
-];
-
-type Tab = 'todos' | 'online' | 'presencial';
+type TabTipo = 'todos' | 'online' | 'presencial';
 
 export function EventosSection() {
   const ref = useScrollReveal();
-  const [activeTab, setActiveTab] = useState<Tab>('todos');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<TabTipo>('todos');
+
+  const { data: eventosDB } = useQuery({
+    queryKey: ['eventos-landing'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('eventos')
+        .select('*')
+        .gte('fecha_inicio', new Date().toISOString())
+        .order('fecha_inicio', { ascending: true })
+        .limit(6);
+      return data || [];
+    },
+  });
+
+  const eventos = eventosDB || [];
 
   const filtered = activeTab === 'todos'
-    ? eventosMock
-    : eventosMock.filter((e) => e.tipo === activeTab);
+    ? eventos
+    : eventos.filter((e) => e.tipo === activeTab);
 
-  const tabs: { key: Tab; label: string }[] = [
+  // No renderizar la sección si no hay eventos
+  if (eventos.length === 0) return null;
+
+  const tabs: { key: TabTipo; label: string }[] = [
     { key: 'todos', label: 'Todos' },
     { key: 'online', label: 'Online' },
     { key: 'presencial', label: 'Presenciales' },
@@ -91,12 +76,13 @@ export function EventosSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filtered.map((evento) => (
+          {filtered.slice(0, 3).map((evento) => (
             <div
               key={evento.id}
-              className="group rounded-2xl border border-border/50 bg-card/50 overflow-hidden hover:border-accent/40 transition-all duration-300 hover:scale-[1.02]"
+              className="group rounded-2xl border border-border/50 bg-card/50 overflow-hidden hover:border-accent/40 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+              onClick={() => navigate(`/eventos/${evento.id}`)}
             >
-              {/* Image placeholder */}
+              {/* Image / tipo banner */}
               <div className="aspect-video relative bg-muted">
                 <div className="absolute inset-0 gradient-sumak opacity-20" />
                 <Badge
@@ -106,44 +92,54 @@ export function EventosSection() {
                       : 'bg-sumak-naranja/90 text-white'
                   }`}
                 >
-                  {evento.tipo === 'online' ? '🟣 Online' : '🟠 Presencial'}
+                  {evento.tipo === 'online' ? (
+                    <><Video className="h-3 w-3 mr-1" />Online</>
+                  ) : (
+                    <><MapPin className="h-3 w-3 mr-1" />Presencial</>
+                  )}
                 </Badge>
+                {evento.modalidad_acceso === 'incluido' && (
+                  <Badge className="absolute top-3 right-3 bg-primary/10 text-primary border-primary/20">
+                    Incluido
+                  </Badge>
+                )}
               </div>
 
               <div className="p-5">
                 <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {evento.fecha}
+                    {format(new Date(evento.fecha_inicio), "d MMM", { locale: es })}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
-                    {evento.hora}hs
+                    {format(new Date(evento.fecha_inicio), 'HH:mm')}hs
                   </span>
                 </div>
 
-                <h3 className="font-display font-semibold text-base mb-3">{evento.titulo}</h3>
+                <h3 className="font-display font-semibold text-base mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                  {evento.titulo}
+                </h3>
 
-                <div className="flex items-center gap-2 mb-4">
-                  <img src={evento.mentorAvatar} alt="" className="w-6 h-6 rounded-full" loading="lazy" />
-                  <span className="text-sm text-muted-foreground">{evento.mentor}</span>
-                </div>
-
-                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {evento.ubicacion}
-                </div>
+                {evento.ubicacion && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {evento.ubicacion}
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between">
                   <span className="font-semibold">
-                    {evento.precio === 0 ? (
+                    {evento.modalidad_acceso === 'incluido' ? (
+                      <span className="text-primary text-sm">Incluido en suscripción</span>
+                    ) : Number(evento.precio) === 0 ? (
                       <span className="text-green-400">Gratis</span>
                     ) : (
-                      <span>${evento.precio.toLocaleString()}</span>
+                      <span>${Number(evento.precio).toLocaleString('es-AR')}</span>
                     )}
                   </span>
                   <Button size="sm" className="gradient-sumak text-white rounded-full border-0">
-                    Inscribirme
+                    Ver más
                   </Button>
                 </div>
               </div>
@@ -156,6 +152,7 @@ export function EventosSection() {
             variant="outline"
             size="lg"
             className="rounded-full gradient-border bg-transparent hover:bg-card px-8"
+            onClick={() => navigate('/eventos')}
           >
             Ver todos los eventos →
           </Button>

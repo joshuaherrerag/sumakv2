@@ -7,9 +7,9 @@ export function Footer() {
       title: 'Plataforma',
       links: [
         { label: 'Mentores', href: '/mentores' },
-        { label: 'Formaciones', href: '/cursos' },
-        { label: 'Eventos', href: '#eventos' },
-        { label: 'Comunidad', href: '#comunidad' },
+        { label: 'Catálogo', href: '/catalogo' },
+        { label: 'Eventos', href: '/eventos' },
+        { label: 'Comunidad', href: '/comunidad' },
       ],
     },
     {

@@ -29,7 +29,13 @@ import MentorCursoDetallePage from "./pages/panel/mentor/MentorCursoDetallePage"
 import CrearCursoPage from "./pages/panel/mentor/CrearCursoPage";
 import MentorPerfilPagePanel from "./pages/panel/mentor/MentorPerfilPage";
 import MentorFinanzasPage from "./pages/panel/mentor/MentorFinanzasPage";
+import MentorEventosPage from "./pages/panel/mentor/MentorEventosPage";
+import CrearEventoPage from "./pages/panel/mentor/CrearEventoPage";
 import CursoVerPage from "./pages/cursos/CursoVerPage";
+import EventosPage from "./pages/eventos/EventosPage";
+import EventoDetallePage from "./pages/eventos/EventoDetallePage";
+import CatalogoPage from "./pages/CatalogoPage";
+import ComunidadPage from "./pages/ComunidadPage";
 
 // Admin panel
 import AdminDashboardPage from "./pages/panel/admin/AdminDashboardPage";
@@ -68,8 +74,12 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/mentores" element={<MentoresPage />} />
               <Route path="/mentores/:id" element={<MentorPerfilPage />} />
+              <Route path="/catalogo" element={<CatalogoPage />} />
+              <Route path="/comunidad" element={<ComunidadPage />} />
               <Route path="/cursos" element={<CursosPage />} />
               <Route path="/cursos/:id" element={<CursoDetallePage />} />
+              <Route path="/eventos" element={<EventosPage />} />
+              <Route path="/eventos/:id" element={<EventoDetallePage />} />
               <Route
                 path="/cursos/:id/ver"
                 element={
@@ -100,6 +110,8 @@ const App = () => (
               <Route path="/panel/mentor/cursos" element={<MentorCursosPage />} />
               <Route path="/panel/mentor/cursos/nuevo" element={<CrearCursoPage />} />
               <Route path="/panel/mentor/cursos/:cursoId" element={<MentorCursoDetallePage />} />
+              <Route path="/panel/mentor/eventos" element={<MentorEventosPage />} />
+              <Route path="/panel/mentor/eventos/nuevo" element={<CrearEventoPage />} />
               <Route path="/panel/mentor/perfil" element={<MentorPerfilPagePanel />} />
               <Route path="/panel/mentor/finanzas" element={<MentorFinanzasPage />} />
             </Route>
