@@ -36,6 +36,10 @@ import EventosPage from "./pages/eventos/EventosPage";
 import EventoDetallePage from "./pages/eventos/EventoDetallePage";
 import CatalogoPage from "./pages/CatalogoPage";
 import ComunidadPage from "./pages/ComunidadPage";
+import PagoExitoPage from "./pages/pago/PagoExitoPage";
+import PagoCanceladoPage from "./pages/pago/PagoCanceladoPage";
+import SuscripcionExitoPage from "./pages/suscripcion/SuscripcionExitoPage";
+import SuscripcionFalloPage from "./pages/suscripcion/SuscripcionFalloPage";
 
 // Admin panel
 import AdminDashboardPage from "./pages/panel/admin/AdminDashboardPage";
@@ -69,6 +73,12 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
+            {/* Resultado de pagos */}
+            <Route path="/pago/exito" element={<PagoExitoPage />} />
+            <Route path="/pago/cancelado" element={<PagoCanceladoPage />} />
+            <Route path="/suscripcion/exito" element={<SuscripcionExitoPage />} />
+            <Route path="/suscripcion/fallo" element={<SuscripcionFalloPage />} />
 
             {/* App layout (navbar) */}
             <Route element={<AppLayout />}>

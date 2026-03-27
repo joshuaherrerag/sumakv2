@@ -91,7 +91,7 @@ export default function CursoDetallePage() {
             </h3>
             <p className="text-sm text-muted-foreground">
               {curso.es_incluido_en_suscripcion
-                ? 'Suscribite al mentor para acceder'
+                ? 'Incluido con tu suscripción a Sumak ($9.99/mes)'
                 : 'Comprá el curso para acceder al contenido completo'}
             </p>
           </div>
@@ -99,9 +99,7 @@ export default function CursoDetallePage() {
             cursoId={curso.id}
             precio={Number(curso.precio)}
             esIncluidoEnSuscripcion={curso.es_incluido_en_suscripcion}
-            mentorId={curso.mentores.id}
-            mentorNombre={mentorName}
-            precioSuscripcion={Number(curso.mentores.precio_suscripcion)}
+            titulosCurso={curso.titulo}
           />
         </CardContent>
       </Card>

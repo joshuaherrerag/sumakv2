@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, BookOpen, ArrowLeft, Calendar, MapPin, Video } from 'lucide-react';
+import { Star, BookOpen, ArrowLeft, Calendar, MapPin, Video, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useMentor, useMentorCursos } from '@/hooks/useMentores';
-import { SuscripcionButton } from '@/components/SuscripcionButton';
 import { BotonSeguir } from '@/components/comunidad/BotonSeguir';
+import { CheckoutModal } from '@/components/CheckoutModal';
 import { supabase } from '@/integrations/supabase/client';
 
 function CursoCard({ curso, rol }: { curso: any; rol?: string }) {
@@ -55,6 +56,7 @@ function CursoCard({ curso, rol }: { curso: any; rol?: string }) {
 export default function MentorPerfilPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { data: mentor, isLoading } = useMentor(id);
   const { data: cursosCreados } = useMentorCursos(id);
 
@@ -168,28 +170,35 @@ export default function MentorPerfilPage() {
             </p>
           )}
 
-          {/* Card suscripción */}
+          {/* Card suscripción Sumak */}
           <Card className="border-primary/20 bg-primary/5">
             <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h3 className="font-semibold text-lg">Suscribite a {mentor.profiles.nombre}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-lg">Suscribite a Sumak</h3>
+                </div>
                 <p className="text-sm text-muted-foreground">
-                  Accedé a todos sus cursos incluidos y contenido exclusivo
+                  Accedé a todos los cursos incluidos de {mentor.profiles.nombre} y toda la plataforma
                 </p>
               </div>
               <div className="flex items-center gap-4 shrink-0">
                 <div className="text-right">
-                  <span className="text-2xl font-bold">${Number(mentor.precio_suscripcion).toLocaleString('es-AR')}</span>
+                  <span className="text-2xl font-bold">$9.99</span>
                   <span className="text-sm text-muted-foreground">/mes</span>
                 </div>
-                <SuscripcionButton
-                  mentorId={mentor.id}
-                  mentorNombre={mentor.profiles.nombre}
-                  precioSuscripcion={Number(mentor.precio_suscripcion)}
-                />
+                <Button className="gradient-primary glow" onClick={() => setCheckoutOpen(true)}>
+                  Suscribirse
+                </Button>
               </div>
             </CardContent>
           </Card>
+          <CheckoutModal
+            open={checkoutOpen}
+            onClose={() => setCheckoutOpen(false)}
+            tipo="suscripcion"
+            titulo="Suscripción mensual a Sumak — accedé a todo el contenido incluido"
+          />
 
           {/* Próximas apariciones */}
           {(proximosEventos || []).length > 0 && (

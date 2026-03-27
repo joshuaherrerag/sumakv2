@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SUMAK_PRECIO = 9.99;
+
 async function getPayPalToken(baseUrl: string, clientId: string, secret: string) {
   const res = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: 'POST',
@@ -35,16 +37,12 @@ serve(async (req) => {
 
     let amount: number;
     let description: string;
+    let customId: string;
 
     if (tipo === 'suscripcion') {
-      const { data: mentor, error } = await supabase
-        .from('mentores')
-        .select('precio_suscripcion, profiles(nombre, apellido)')
-        .eq('id', item_id)
-        .single();
-      if (error || !mentor) throw new Error('Mentor no encontrado');
-      amount = mentor.precio_suscripcion;
-      description = `Suscripción - ${(mentor.profiles as any).nombre} ${(mentor.profiles as any).apellido}`;
+      amount = SUMAK_PRECIO;
+      description = 'Suscripción mensual a Sumak';
+      customId = `suscripcion:${user_id}`;
     } else {
       const { data: curso, error } = await supabase
         .from('cursos')
@@ -54,6 +52,7 @@ serve(async (req) => {
       if (error || !curso) throw new Error('Curso no encontrado');
       amount = curso.precio;
       description = `Curso: ${curso.titulo}`;
+      customId = `curso:${item_id}:${user_id}`;
     }
 
     const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID')!;
@@ -65,19 +64,18 @@ serve(async (req) => {
 
     const accessToken = await getPayPalToken(paypalBaseUrl, paypalClientId, paypalSecret);
 
-    // custom_id permite que el webhook identifique el pago: "tipo_itemId_userId"
     const order = {
       intent: 'CAPTURE',
       purchase_units: [
         {
           amount: { currency_code: 'USD', value: amount.toFixed(2) },
           description,
-          custom_id: `${tipo}_${item_id}_${user_id}`,
+          custom_id: customId,
         },
       ],
       application_context: {
-        return_url: `${frontendUrl}/pago/exito`,
-        cancel_url: `${frontendUrl}/pago/cancelado`,
+        return_url: tipo === 'suscripcion' ? `${frontendUrl}/suscripcion/exito` : `${frontendUrl}/pago/exito`,
+        cancel_url: tipo === 'suscripcion' ? `${frontendUrl}/suscripcion/fallo` : `${frontendUrl}/pago/cancelado`,
       },
     };
 
@@ -95,9 +93,9 @@ serve(async (req) => {
 
     // Guardar registro pendiente en BD
     if (tipo === 'suscripcion') {
+      // Suscripción a la plataforma — sin mentor_id
       await supabase.from('suscripciones_mentor').insert({
         alumno_id: user_id,
-        mentor_id: item_id,
         estado: 'pendiente',
       });
     } else {

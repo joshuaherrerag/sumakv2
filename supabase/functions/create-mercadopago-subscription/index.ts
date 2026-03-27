@@ -6,44 +6,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SUMAK_PRECIO = 9.99;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { mentor_id, user_id } = await req.json();
+    const { user_id } = await req.json();
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { data: mentor, error: mentorError } = await supabase
-      .from('mentores')
-      .select('precio_suscripcion, profiles(nombre, apellido)')
-      .eq('id', mentor_id)
-      .single();
-
-    if (mentorError || !mentor) throw new Error('Mentor no encontrado');
-
     const mpAccessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN')!;
     const frontendUrl = Deno.env.get('FRONTEND_URL')!;
 
     const preference = {
-      reason: `Suscripción mensual - ${(mentor.profiles as any).nombre} ${(mentor.profiles as any).apellido}`,
+      reason: 'Suscripción mensual a Sumak',
       auto_recurring: {
         frequency: 1,
         frequency_type: 'months',
-        transaction_amount: mentor.precio_suscripcion,
-        currency_id: 'ARS',
+        transaction_amount: SUMAK_PRECIO,
+        currency_id: 'USD',
       },
       back_urls: {
         success: `${frontendUrl}/suscripcion/exito`,
         failure: `${frontendUrl}/suscripcion/fallo`,
         pending: `${frontendUrl}/suscripcion/pendiente`,
       },
-      external_reference: `${user_id}_${mentor_id}`,
+      external_reference: `suscripcion:${user_id}`,
       notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/webhook-mercadopago`,
     };
 
@@ -59,10 +53,9 @@ serve(async (req) => {
     const mpData = await mpResponse.json();
     if (!mpResponse.ok) throw new Error(mpData.message || 'Error en MercadoPago');
 
-    // Guardar suscripción pendiente
+    // Guardar suscripción pendiente (sin mentor_id — suscripción a la plataforma)
     await supabase.from('suscripciones_mentor').insert({
       alumno_id: user_id,
-      mentor_id,
       estado: 'pendiente',
       plan_id_mercadopago: mpData.id,
     });

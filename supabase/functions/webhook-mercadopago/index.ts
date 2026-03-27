@@ -5,7 +5,6 @@ serve(async (req) => {
   try {
     const body = await req.json();
 
-    // MercadoPago envía: { type: 'payment', data: { id: 'xxx' } }
     if (body.type !== 'payment') {
       return new Response('ok', { status: 200 });
     }
@@ -30,20 +29,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // external_reference formato: "userId_mentorId"
+    // external_reference formato: "suscripcion:userId"
     const externalRef = payment.external_reference as string;
-    const underscoreIdx = externalRef.indexOf('_');
-    const userId = externalRef.substring(0, underscoreIdx);
-    const mentorId = externalRef.substring(underscoreIdx + 1);
+    const colonIdx = externalRef.indexOf(':');
+    const userId = externalRef.substring(colonIdx + 1);
 
+    // Activar suscripción a la plataforma (mentor_id IS NULL)
     await supabase
       .from('suscripciones_mentor')
       .update({ estado: 'activa', fecha_inicio: new Date().toISOString() })
       .eq('alumno_id', userId)
-      .eq('mentor_id', mentorId)
+      .is('mentor_id', null)
       .eq('estado', 'pendiente');
 
-    // Calcular liquidación
+    // Calcular liquidación (sin mentor_id, es ingreso de plataforma)
     await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/calcular-liquidacion`, {
       method: 'POST',
       headers: {
@@ -53,7 +52,6 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         tipo: 'suscripcion',
-        mentor_id: mentorId,
         monto: payment.transaction_amount,
       }),
     });

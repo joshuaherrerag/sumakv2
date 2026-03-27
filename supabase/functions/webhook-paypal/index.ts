@@ -56,42 +56,55 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // custom_id formato: "tipo_itemId_userId"
+    // custom_id formato: "suscripcion:userId" o "curso:cursoId:userId"
     const customId = order.purchase_units?.[0]?.custom_id as string;
     if (!customId) throw new Error('custom_id faltante en la orden');
-    const [tipo, itemId, userId] = customId.split('_');
+
+    const parts = customId.split(':');
+    const tipo = parts[0];
     const monto = parseFloat(order.purchase_units[0].amount.value);
 
     if (tipo === 'suscripcion') {
+      const userId = parts[1];
+
+      // Activar suscripción a la plataforma (mentor_id IS NULL)
       await supabase
         .from('suscripciones_mentor')
         .update({ estado: 'activa', fecha_inicio: new Date().toISOString() })
         .eq('alumno_id', userId)
-        .eq('mentor_id', itemId)
+        .is('mentor_id', null)
         .eq('estado', 'pendiente');
+
+      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/calcular-liquidacion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!}`,
+        },
+        body: JSON.stringify({ tipo: 'suscripcion', monto }),
+      });
     } else {
+      const cursoId = parts[1];
+      const userId = parts[2];
+
       await supabase
         .from('inscripciones')
         .update({ estado: 'activa' })
         .eq('alumno_id', userId)
-        .eq('curso_id', itemId)
+        .eq('curso_id', cursoId)
         .eq('estado', 'pendiente');
-    }
 
-    // Calcular liquidación
-    await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/calcular-liquidacion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-        Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!}`,
-      },
-      body: JSON.stringify({
-        tipo,
-        ...(tipo === 'suscripcion' ? { mentor_id: itemId } : { curso_id: itemId }),
-        monto,
-      }),
-    });
+      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/calcular-liquidacion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!}`,
+        },
+        body: JSON.stringify({ tipo: 'curso', curso_id: cursoId, monto }),
+      });
+    }
 
     return new Response('ok', { status: 200 });
   } catch (error) {

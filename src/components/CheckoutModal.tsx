@@ -8,12 +8,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
+const SUMAK_PRECIO = 9.99;
+
 interface CheckoutModalProps {
   open: boolean;
   onClose: () => void;
   tipo: 'suscripcion' | 'curso';
-  itemId: string;
-  precio: number;
+  itemId?: string;  // solo requerido para tipo='curso'
+  precio?: number;  // solo requerido para tipo='curso'
   titulo: string;
 }
 
@@ -24,15 +26,25 @@ export function CheckoutModal({ open, onClose, tipo, itemId, precio, titulo }: C
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const precioFinal = tipo === 'suscripcion' ? SUMAK_PRECIO : (precio ?? 0);
+
   const handlePagarMercadoPago = async () => {
     if (!user) { navigate('/login'); return; }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-mercadopago-subscription', {
-        body: { mentor_id: itemId, user_id: user.id },
-      });
-      if (error) throw error;
-      window.location.href = data.init_point;
+      if (tipo === 'suscripcion') {
+        const { data, error } = await supabase.functions.invoke('create-mercadopago-subscription', {
+          body: { user_id: user.id },
+        });
+        if (error) throw error;
+        window.location.href = data.init_point;
+      } else {
+        const { data, error } = await supabase.functions.invoke('create-paypal-order', {
+          body: { tipo: 'curso', item_id: itemId, user_id: user.id },
+        });
+        if (error) throw error;
+        window.location.href = data.approval_url;
+      }
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
       setLoading(false);
@@ -43,9 +55,11 @@ export function CheckoutModal({ open, onClose, tipo, itemId, precio, titulo }: C
     if (!user) { navigate('/login'); return; }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-paypal-order', {
-        body: { tipo, item_id: itemId, user_id: user.id },
-      });
+      const body = tipo === 'suscripcion'
+        ? { tipo: 'suscripcion', user_id: user.id }
+        : { tipo: 'curso', item_id: itemId, user_id: user.id };
+
+      const { data, error } = await supabase.functions.invoke('create-paypal-order', { body });
       if (error) throw error;
       window.location.href = data.approval_url;
     } catch (e: any) {
@@ -64,7 +78,10 @@ export function CheckoutModal({ open, onClose, tipo, itemId, precio, titulo }: C
         <div className="space-y-4">
           <div>
             <p className="text-sm text-muted-foreground">{titulo}</p>
-            <p className="text-2xl font-bold gradient-text">${precio.toLocaleString('es-AR')}</p>
+            <p className="text-2xl font-bold gradient-text">
+              ${precioFinal.toLocaleString('es-AR')}
+              {tipo === 'suscripcion' && <span className="text-base font-normal text-muted-foreground">/mes</span>}
+            </p>
           </div>
 
           <Tabs value={metodo} onValueChange={(v) => setMetodo(v as typeof metodo)}>
