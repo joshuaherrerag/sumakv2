@@ -70,20 +70,17 @@ export function HeroSection() {
           </Button>
         </div>
 
-        {/* Platform mockup placeholder */}
+        {/* Video de YouTube */}
         <div className="relative max-w-4xl mx-auto">
           <div className="rounded-2xl overflow-hidden border border-border/30 bg-card/40 backdrop-blur-sm shadow-2xl">
-            <div className="aspect-video gradient-sumak opacity-10" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <img
-                  src="https://bu-cdn.tiendup.com/business/68423/images/logo_69627c253df9c_medium.png"
-                  alt="Sumak"
-                  className="h-16 mx-auto mb-4 opacity-60"
-                />
-                <p className="text-muted-foreground text-sm">Plataforma de bienestar consciente</p>
-              </div>
-            </div>
+            <iframe 
+              className="w-full aspect-video" 
+              src="https://www.youtube.com/embed/TMU6Rlusd2s" 
+              title="Video de Sumak Bienestar" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen>
+            </iframe>
           </div>
           {/* Glow under mockup */}
           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-16 gradient-sumak opacity-20 blur-3xl rounded-full" />

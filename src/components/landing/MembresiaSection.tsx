@@ -5,10 +5,11 @@ import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 const planes = [
   {
-    nombre: 'Membresía Esencial',
-    precio: '2.990',
+    nombre: 'En Argentina',
+    precio: '5.000',
     badge: null,
     beneficios: [
+      'Ideal para quiénes están en Argentina',
       'Acceso a formaciones incluidas',
       'Comunidad y foros de discusión',
       'Eventos online gratuitos',
@@ -18,17 +19,16 @@ const planes = [
     destacado: false,
   },
   {
-    nombre: 'Membresía Premium',
-    precio: '6.990',
+    nombre: 'Internacional',
+    precio: '4,00',
     badge: 'Más popular',
     beneficios: [
-      'Todo lo de Esencial',
-      'Acceso a TODOS los mentores',
-      'Sesiones 1:1 mensuales',
-      'Descuento en eventos presenciales',
-      'Acceso anticipado a retiros',
-      'Certificados de formación',
-      'Soporte prioritario 24/7',
+      'Ideal para quiénes están fuera de Argentina',
+      'Acceso a formaciones incluidas',
+      'Comunidad y foros de discusión',
+      'Eventos online gratuitos',
+      'Contenido exclusivo mensual',
+      'Soporte por email',
     ],
     destacado: true,
   },
